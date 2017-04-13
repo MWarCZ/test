@@ -18,6 +18,7 @@ namespace testVG.library
             this.value = value;
         }
 
+
         public int GetValue()
         {
             return this.value;
