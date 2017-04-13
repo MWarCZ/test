@@ -10,7 +10,18 @@ namespace testVG.unit_test
         [TestMethod]
         public void TestMethod1()
         {
+            
+        }
+        [TestMethod]
+        public void Test_GiveMeValue()
+        {
             GiveMeValue gmv = new GiveMeValue();
+
+            Assert.AreEqual(0, gmv.GetValue() );
+
+            gmv.SetValue(5);
+            Assert.AreEqual(5, gmv.GetValue());
+
         }
     }
 }

@@ -11,7 +11,11 @@ namespace testVG.library
         private int value;
         public GiveMeValue()
         {
-
+            this.value = 0;
+        }
+        public GiveMeValue(int value)
+        {
+            this.value = value;
         }
 
         public int GetValue()
