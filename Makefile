@@ -9,7 +9,7 @@ BUILD_DIR=build/
 DOCUMENTATION_DIR=doc/
 TEST_DIR=test/
 
-default: build main
+default: build main.o
 	
 
 get-deps:
