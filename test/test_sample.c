@@ -7,11 +7,11 @@ CHEAT_TEST(Test_FirstTest,
 )
 
 CHEAT_TEST(Test_SecondTest,
-  cheat_assert( 1 == 2);
+  cheat_assert( 1 == 1);
 )
 
 CHEAT_TEST(Test_ThirdTest,
-  cheat_assert_not( 1 == 1);
+  cheat_assert_not( 3 == 1);
 )
 
 CHEAT_TEST(Test_ForCyclus,

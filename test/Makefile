@@ -24,9 +24,7 @@ build_dir:
 		mkdir $(BUILD_DIR); \
 	fi
 
-#build: build_dir $(OBJECTS) $(BUILD_DIR)run
-
-build: build_dir $(OBJECTS)
+build: get-deps build_dir $(OBJECTS)
 
 $(BUILD_DIR)run: $(OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^ $(APP_OBJECT)
