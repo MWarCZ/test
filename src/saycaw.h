@@ -3,5 +3,7 @@
 
 void SayCaw();
 
+int GetNumber(int x);
+
 #endif
 

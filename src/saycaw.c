@@ -8,5 +8,9 @@ void SayCaw() {
   printf("Caw.\n");
 }
 
+int GetNumber(int x) {
+  return x;
+}
+
 #endif
 

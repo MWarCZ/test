@@ -1,5 +1,5 @@
 
-.PHONY: get-deps test
+.PHONY: all get-deps get-unittest build run test doc clean
 
 CC=gcc
 CFLAGS=-std=c99 -Wall -Wextra -pedantic -g
@@ -19,7 +19,7 @@ get-deps: get-unittest
 get-unittest:
 	cd $(TEST_DIR) && $(MAKE) get-deps
 
-test-build: get-unittest build
+test-build: build
 	cd $(TEST_DIR) && $(MAKE)
 
 test: test-build
@@ -30,6 +30,9 @@ build:
 
 run: build
 	@cd $(SOURCE_DIR) && $(MAKE) run
+
+%:
+	@cd $(TEST_DIR) && $(MAKE) $@
 
 doc:
 	@if [ ! -d "$(DOCUMENTATION_DIR)" ]; then \

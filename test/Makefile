@@ -1,4 +1,6 @@
 
+.PHONY: all get-deps build-dir build run test clean
+
 CC=gcc
 CFLAGS=-std=c99 -g -I .
 
@@ -10,6 +12,7 @@ OBJECTS:=$(addprefix $(BUILD_DIR),$(OBJECTS))
 
 APP_OBJECTS:=$(filter-out ../build/run ../build/main.o,$(wildcard ../build/*))
 
+
 all: build
 
 get-deps:
@@ -19,15 +22,15 @@ get-deps:
 		&& wget "http://github.com/Tuplanolla/cheat/raw/1.0.3/cheat.h"; \
 		fi
 
-build_dir:
+build-dir:
 	@if [ ! -d "$(BUILD_DIR)" ]; then \
 		mkdir $(BUILD_DIR); \
 	fi
 
-build: get-deps build_dir $(OBJECTS)
+build: get-deps build-dir $(OBJECTS)
 
 $(BUILD_DIR)run: $(OBJECTS)
-	$(CC) $(CFLAGS) -o $@ $^ $(APP_OBJECT)
+	$(CC) $(CFLAGS) -c -o $@ $^ $(APP_OBJECTS)
 
 ### START: Dynamicke vytvoreni cilu s volitelnymi prerekvizitami
 
@@ -35,7 +38,7 @@ TARGETS=$(OBJECTS)
 define BUILD_TARGET 
 $(1): $(wildcard $(1:$(BUILD_DIR)%.o=%.c)) $(wildcard $(1:$(BUILD_DIR)%.o=%.h)) 
 	@#echo "$$@ >> $$^ <<" 
-	$(CC) $(CFLAGS) -o $$@ $$<
+	$(CC) $(CFLAGS) -o $$@ $$^ $$(APP_OBJECTS)
 endef 
 $(foreach target,$(TARGETS),$(eval $(call BUILD_TARGET,$(target)))) 
 
@@ -45,6 +48,9 @@ run: build
 	@#printf "\n===== RUN =====\n\n"
 	@#./$(BUILD_DIR)run
 	@$(foreach run,$(OBJECTS), printf "\n===== TEST =====\n" && ./$(run);)
+
+%: build $(BUILD_DIR)%.o 
+	@printf "\n===== TEST =====\n" && ./$(word 2,$^)
 
 clean:
 	@printf "\n===== CLEAN =====\n\n"
