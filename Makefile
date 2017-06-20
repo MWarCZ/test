@@ -1,5 +1,5 @@
 
-.PHONY: default get-deps test doc build clean
+.PHONY: get-deps test
 
 CC=gcc
 CFLAGS=-std=c99 -Wall -Wextra -pedantic -g
@@ -8,31 +8,28 @@ SOURCE_DIR=src/
 BUILD_DIR=build/
 DOCUMENTATION_DIR=doc/
 TEST_DIR=test/
+TEST_BUILD_DIR=/test_build/
+TEST_FRAMEWORK_DIR=test_framework/
 
-TMP_DIR=tmp/
-CRITERION_URL=https://github.com/Snaipe/Criterion/releases/download/v2.3.2/criterion-v2.3.2-linux-x86_64.tar.bz2
+all: get-deps build
+	@echo $@
 
-default: build main.o
-	
+get-deps: get-unittest
 
-get-deps: get-criterion
-	echo $@
+get-unittest:
+	cd $(TEST_DIR) && $(MAKE) get-deps
 
-test: get-criterion
-	true
+test-build: get-unittest build
+	cd $(TEST_DIR) && $(MAKE)
 
-get-criterion:
-	@if [ ! -d "$(TMP_DIR)" ]; then \
-		mkdir "$(TMP_DIR)"; \
-	fi; \
-	cd $(TMP_DIR); \
-	if [ ! -d "criterion" ]; then \
-		wget -O criterion.tar.gz2 "$(CRITERION_URL)" \
-		&& tar jxf criterion.tar.gz2 \
-		&& printf "\n===== CRITERION READY =====\n"; \
-	rm criterion.tar.gz2; \
-	mv criterion* criterion; \
-	fi;
+test: test-build
+	cd $(TEST_DIR) && $(MAKE) run
+
+build:
+	@cd $(SOURCE_DIR) && $(MAKE)
+
+run: build
+	@cd $(SOURCE_DIR) && $(MAKE) run
 
 doc:
 	@if [ ! -d "$(DOCUMENTATION_DIR)" ]; then \
@@ -40,19 +37,10 @@ doc:
 	fi
 	#doxygen
 
-build:
-	@if [ ! -d "$(BUILD_DIR)" ]; then \
-		mkdir "$(BUILD_DIR)"; \
-	fi
-
-%.o: $(SOURCE_DIR)%.c $(SOURCE_DIR)%.h
-	$(CC) $(CFLAGS) -o $(BUILD_DIR)$@ $<
-
-run: build main.o
-	@printf "\n===== RUN MAIN =====\n\n"
-	./$(BUILD_DIR)main.o
-
 clean:
-	rm -R "$(BUILD_DIR)"; 
-	rm -R "$(DOCUMENTATION_DIR)"
+	printf "\n===== CLEAN =====\n\n"
+	rm -f -R "$(DOCUMENTATION_DIR)"
+	@cd $(SOURCE_DIR) && $(MAKE) clean
+	@cd $(TEST_DIR) && $(MAKE) clean
+
 
