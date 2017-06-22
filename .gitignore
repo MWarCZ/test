@@ -4,3 +4,5 @@ build_test/
 doc/
 test_framework/
 
+*.swp
+

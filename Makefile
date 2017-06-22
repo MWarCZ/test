@@ -38,7 +38,7 @@ doc:
 	@if [ ! -d "$(DOCUMENTATION_DIR)" ]; then \
 		mkdir "$(DOCUMENTATION_DIR)"; \
 	fi
-	#doxygen
+	doxygen
 
 clean:
 	printf "\n===== CLEAN =====\n\n"

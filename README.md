@@ -8,11 +8,11 @@ Toto je jen testovaci repositář. Zde se učim a zkoušim si zde různe hokusy 
 ## Testovani
 - [CHEAT](https://github.com/Tuplanolla/cheat)
   - Testovací framework
-- [Travis CI](https://docs.travis-ci.com)
+- [Travis CI](https://travis-ci.org/MWarCZ/test)
   - Automatizované testování
 
 ## Licence
-- [MIT](LICENSE.md)
+- [MIT License](LICENSE.md)
   > Licence je zde napsana v jazyce Markdown.
   > Nejedná se jen o holý text.
 
