@@ -47,7 +47,7 @@ $(foreach target,$(TARGETS),$(eval $(call BUILD_TARGET,$(target))))
 run: build 
 	@#printf "\n===== RUN =====\n\n"
 	@#./$(BUILD_DIR)run
-	@$(foreach run,$(OBJECTS), printf "\n===== TEST =====\n" && ./$(run);)
+	@$(foreach run,$(OBJECTS), printf "\n===== TEST: $(subst $(BUILD_DIR),,$(run)) =====\n" && ./$(run);)
 
 %: build $(BUILD_DIR)%.o 
 	@printf "\n===== TEST =====\n" && ./$(word 2,$^)
