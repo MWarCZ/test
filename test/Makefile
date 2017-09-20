@@ -6,7 +6,7 @@ CFLAGS=-std=c99 -g -I .
 
 TEST_FRAMEWORK_DIR=../test_framework/
 BUILD_DIR=../build_test/
-SOURCE=$(wildcard *c)
+SOURCE=$(wildcard *.test.c)
 OBJECTS:=$(SOURCE:.c=.o)
 OBJECTS:=$(addprefix $(BUILD_DIR),$(OBJECTS))
 
