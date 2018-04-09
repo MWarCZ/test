@@ -11,6 +11,7 @@
  - [Měření rychlosti sítě ](#mereni)
    - [Základní pojmy](#zakladni_pojmy)
    - [Možné způsoby měření](#mozne_zpusoby_mereni)
+ - [Implementace](#implementace)
  - [Pokusná měření](#testy)
  - [Známé chyby](#chyby)
  - [Bibliografie](#bibliografie)
@@ -56,7 +57,7 @@
 - Pokud mření trvá příliš dlouho je možné aplikaci ukončit zasláním ` SIGINT` (`Ctrl+C`).
   - <img src="img/ctrl-c.png" alt="Ukončení aplikace signalem SIGINT"/>
 - Pokud server není dostupný nebo se nepodařilo ani jedno měření, tak se nevypíší žádná naměřená data, ale pouze zprava o nedostatku dat.
-  - <img src="img/server=unexist.png" alt="Server není dostupný"/>
+  - <img src="img/server-unexist.png" alt="Server není dostupný"/>
 
 ## <a id="testy"></a> Pokusná měření
 - Pokusná měření byla prováděná na domácí síti LAN (100Mbit) a WLAN (IEEE 802.11n) a switch (NETGEAR GS308 100/1000Mbit). 
