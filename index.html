@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="cs">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Seznam map</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+    integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <script type="text/javascript" src="https://api.mapy.cz/loader.js"></script>
+  <script type="text/javascript">Loader.load();</script>
+  <style>
+    .smap .compass {
+      top: 45px;
+      right: 10px;
+    }
+
+    .smap .custom-marker {
+      position: absolute;
+      left: 0px;
+      top: 3px;
+      text-align: center;
+      width: 22px;
+      color: white;
+      font-size: 15px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap-map">
+    <div id="smap" class="smap" style="height:380px"></div>
+  </div>
+  <div class="buttons">
+    <button id="btn-reset" type="button">Reset</button>
+    <button id="btn-try-address" type="button">Try Find</button>
+  </div>
+  <div class="inputs">
+    <input id="longitude" type="text" value="15">
+    <input id="latitude" type="text" value="50">
+  </div>
+  <div class="address">
+    <label>street: <input id="street" type="text" value=""></label>
+    <label>no: <input id="no" type="text" value=""></label>
+    <label>city: <input id="city" type="text" value="újezd u brna"></label>
+    <label>zip_code: <input id="zip_code" type="text" value=""></label>
+  </div>
+  <ul id="poss-places"></ul>
+  <div class="wrap-map">
+    <div id="smap2" class="smap" style="height:380px"></div>
+  </div>
+  <script>
+
+    var iLongitude = JAK.gel('longitude')
+    var iLatitude = JAK.gel('latitude')
+
+    var iListOfPossiblePlaces = JAK.gel('poss-places')
+
+    var oldCoords = SMap.Coords.fromWGS84(iLongitude.value, iLatitude.value)
+    var selectedCoords = SMap.Coords.fromWGS84(iLongitude.value, iLatitude.value)
+
+    var smap = new SMap(JAK.gel("smap"), oldCoords, 14)
+
+    function initMap(map) {
+      map.addDefaultLayer(SMap.DEF_OPHOTO);
+      map.addDefaultLayer(SMap.DEF_BASE).enable();
+
+      // Výběr mapy
+      var cSwitch = new SMap.Control.Layer({
+        width: 60,
+        items: 2,
+        page: 4
+      });
+      cSwitch.addDefaultLayer(SMap.DEF_BASE);
+      cSwitch.addDefaultLayer(SMap.DEF_OPHOTO);
+      map.addControl(cSwitch, { left: "8px", top: "9px" });
+
+      // Přidání panelu pro ovládaní směru
+      var cCompass = new SMap.Control.Compass({});
+      map.addControl(cCompass);
+
+      // Přidání panelu pro ovládání přiblížení
+      var cZoom = new SMap.Control.Zoom({
+        17: 'Ulice',
+        14: 'Obec',
+        11: 'Město',
+        8: 'Kraj',
+        5: 'Stát',
+        2: 'Svět',
+      })
+      map.addControl(cZoom, {});
+
+      // Přidání ovládání mapy pomocí myši
+      var cMouse = new SMap.Control.Mouse(SMap.MOUSE_PAN | SMap.MOUSE_WHEEL | SMap.MOUSE_ZOOM);
+      map.addControl(cMouse);
+
+      // Přidání ovládání mapy pomocí klávesnice
+      var cKeyboard = new SMap.Control.Keyboard(SMap.KB_PAN | SMap.KB_ZOOM);
+      map.addControl(cKeyboard);
+
+      // Markers
+      var lMarkerSecondary = new SMap.Layer.Marker();
+      map.addLayer(lMarkerSecondary);
+      lMarkerSecondary.enable();
+
+      // Markers
+      var lMarkerPrimary = new SMap.Layer.Marker();
+      map.addLayer(lMarkerPrimary);
+      lMarkerPrimary.enable();
+
+      var signals = map.getSignals();
+
+      return {
+        map,
+        cSwitch,
+        cCompass,
+        cZoom,
+        cMouse,
+        cKeyboard,
+        lMarkerPrimary,
+        lMarkerSecondary,
+        signals,
+      }
+    }
+
+    var s = initMap(smap)
+
+    /**
+     * @param {SMap.Coords} coords
+     * @param {{color: string, fa: string}} opts
+     */
+    function createMarker(coords, opts = {}) {
+      // defaults options
+      var o = Object.assign({ color: 'red', fa: 'fa-home' }, opts)
+      // marker icon
+      var wrapper = JAK.mel('div')
+      var bgImage = JAK.mel('img', { src: SMap.CONFIG.img + '/marker/drop-' + o.color + '.png' })
+      wrapper.append(bgImage)
+      var fgIcon = JAK.mel('i')
+      fgIcon.classList.add('fa', o.fa, 'custom-marker')
+      wrapper.append(fgIcon)
+      return new SMap.Marker(coords, null, { url: wrapper })
+    }
+
+    /** @param {(e:Event, card: Element)=>void} cbOnclickBtnSelect */
+    function createCard4PossiblePlace(title, cbOnclickBtnSelect) {
+      var card = new SMap.Card()
+      card.getHeader().innerHTML = '<strong>' + title + '</strong>'
+      var btn = JAK.mel('button', { type: 'button' })
+      btn.innerText = 'Vybrat místo'
+      btn.onclick = function (e) { cbOnclickBtnSelect && cbOnclickBtnSelect(e, card) }
+      card.getBody().append(btn)
+      return card
+    }
+    function createListItem4PossiblePlace(title, callbacks = {}) {
+      var item = JAK.mel('li')
+      item.innerHTML = '<strong>' + title + ' </strong>'
+      var btnShow = JAK.mel('button', { type: 'button' })
+      btnShow.innerText = 'Ukaž místo'
+      btnShow.onclick = function (e) { callbacks.onShow && callbacks.onShow(e) }
+      item.append(btnShow)
+      var btnSelect = JAK.mel('button', { type: 'button' })
+      btnSelect.innerText = 'Vybrat místo'
+      btnSelect.onclick = function (e) { callbacks.onSelect && callbacks.onSelect(e) }
+      item.append(btnSelect)
+      return item
+    }
+
+    var selectedMarker = createMarker(oldCoords);
+    s.lMarkerPrimary.addMarker(selectedMarker);
+
+    // ------------------------------------------------------------
+
+    // s.lMarkerSecondary.addMarker(createMarker(oldCoords, { color: 'blue' }));
+    // s.lMarkerSecondary.addMarker(createMarker(oldCoords, { color: 'blue' }));
+    // s.lMarkerSecondary.addMarker(createMarker(oldCoords, { color: 'blue' }));
+
+    // ------------------------------------------------------------
+
+    // With globals
+
+    // Vyber nového bodu pro uloženi
+    function changeSelectedCoords(coords) {
+      iLongitude.value = coords.toWGS84()[0];
+      iLatitude.value = coords.toWGS84()[1];
+      var selected = s.lMarkerPrimary.getMarkers()[0]
+      selected.setCoords(coords)
+    }
+    function onChangeCoords(e) {
+      var coords = SMap.Coords.fromEvent(e.data.event, s.map)
+      changeSelectedCoords(coords)
+    }
+
+    // Možná místa
+    function removeAllPossiblePlaces() {
+      s.lMarkerSecondary.removeAll()
+      iListOfPossiblePlaces.innerHTML = ''
+    }
+    function addPossiblePlace(coords, title) {
+      var marker = createMarker(coords, { color: 'blue', fa: 'fa-question-circle' })
+      s.lMarkerSecondary.addMarker(marker)
+
+      function onClickSelect(e, card) {
+        changeSelectedCoords(coords)
+        removeAllPossiblePlaces()
+        if (card) {
+          card.getContainer().querySelector('.close').click()
+        } else {
+          s.map.setCenter(coords)
+        }
+      }
+      var card = createCard4PossiblePlace(title, onClickSelect)
+      marker.decorate(SMap.Marker.Feature.Card, card)
+
+      var item = createListItem4PossiblePlace(title, {
+        onShow: function () { s.map.setCenter(coords) },
+        onSelect: onClickSelect,
+      })
+      iListOfPossiblePlaces.append(item)
+
+      return { marker, card }
+    }
+
+    // Nalezeni možných poloh z adresy
+    function tryFindPlace() {
+      var query = JAK.gel('street').value + ' ' + JAK.gel('no').value + ' ' + JAK.gel('city').value + ' ' + JAK.gel('zip_code').value;
+
+      new SMap.Geocoder(query, function (geocoder) {
+        // Clear markers
+        removeAllPossiblePlaces()
+
+        var results = geocoder.getResults()[0].results;
+        // Is empty
+        if (!results.length) {
+          alert("Tohle neznáme.\r\n" + query);
+          return;
+        }
+        while (results.length) {
+          var item = results.shift()
+          addPossiblePlace(item.coords, item.label)
+        }
+      });
+    }
+
+    // ------------------------------------------------------------
+
+    JAK.gel('btn-try-address').addEventListener('click', tryFindPlace)
+    JAK.gel('btn-reset').addEventListener('click', function () {
+      changeSelectedCoords(oldCoords);
+      removeAllPossiblePlaces();
+    })
+
+
+    // Zmena vybraneho bodu
+    s.signals.addListener(window, "map-click", function (e) {
+      Fired.marker || onChangeCoords(e)
+    });
+
+    // cursor Move pri chytnuti mapy
+    function appendChangeCursorOnMove(map, signals) {
+      signals.addListener(window, "map-pan", function (e) {
+        map.getContainer().style.cursor = 'move'
+      });
+      signals.addListener(window, "control-mouse-move", function (e) {
+        map.getContainer().style.cursor = ''
+      });
+    }
+    appendChangeCursorOnMove(s.map, s.signals)
+
+    // Fix pro rozliseni pri kliknuti na mapu
+    var Fired = {
+      marker: false,
+      clear() {
+        this.marker = false
+      },
+      clickMarker() { this.marker = true },
+    }
+    s.signals.addListener(window, "map-click", function () { Fired.clear(); });
+    s.signals.addListener(window, "marker-click", function () { Fired.clickMarker() });
+  </script>
+
+  <script>
+
+    var ss = initMap(new SMap(JAK.gel("smap2"), oldCoords, 6))
+
+    var clusterer = new SMap.Marker.Clusterer(ss.map, 100);
+    ss.lMarkerPrimary.setClusterer(clusterer);
+
+    var markers = []
+    for (var i = 0; i < 100; i++) {
+      var longitude = Math.random() * 5 + 13
+      var latitude = Math.random() * 2 + 48.5
+      var coords = SMap.Coords.fromWGS84(longitude, latitude)
+      var color = (i % 3) ? (i % 3 === 1) ? 'yellow' : 'blue' : 'red'
+      var marker = createMarker(coords, { color })
+      markers.push(marker)
+    }
+    ss.lMarkerPrimary.addMarker(markers)
+
+
+    // https://b2c.cpost.cz/services/PostCode/getDataAsJson?cityOrPart=%C3%9Ajezd%20u%20Brna
+
+  </script>
+</body>
+
+</html>
